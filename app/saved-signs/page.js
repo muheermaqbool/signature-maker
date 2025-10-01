@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import SavedSignatureCard from "../../components/SavedSignatureCard";
 import SearchBar from "../../components/SearchBar";
+import Link from "next/link";
 
 
 export default function SavedSignsPage() {
@@ -37,7 +38,7 @@ return (
 <header className="flex items-center justify-between mb-6">
 <h1 className="text-2xl font-bold">Saved Signatures</h1>
 <nav>
-<a href="/" className="text-sm px-3 py-1 bg-white/10 rounded">Create</a>
+<Link href="/" className="text-sm px-3 py-1 bg-white/10 rounded">Create</Link>
 </nav>
 </header>
 
