@@ -1,103 +1,177 @@
-import Image from "next/image";
+"use client";
+import React, { useRef, useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import HoldButton from "../components/HoldButton";
+import SignatureCanvas from "../components/SignatureCanvas";
+import Footer from "@/components/Footer";
+import LoadingScreen from "@/components/LoadingScreen";
 
-export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+export default function HomePage() {
+    
+const canvasApiRef = useRef(null);
+const [savedList, setSavedList] = useState([]);
+const [preview, setPreview] = useState(null);
+const [isModalOpen, setIsModalOpen] = useState(false);
+const [title, setTitle] = useState("");
+  const [loading, setLoading] = useState(true);
+
+
+useEffect(() => {
+const raw = localStorage.getItem("signatures");
+if (raw) setSavedList(JSON.parse(raw));
+}, []);
+
+
+function persist(list) {
+localStorage.setItem("signatures", JSON.stringify(list));
+setSavedList(list);
+}
+
+
+function onHoldComplete() {
+// open signing modal
+setIsModalOpen(true);
+// clear existing canvas
+setTimeout(() => canvasApiRef.current?.clear?.(), 80);
+}
+
+
+function saveWithTitle() {
+  const dataUrl = canvasApiRef.current?.save?.();
+  if (!dataUrl) {
+    alert("Canvas is empty. Please draw your signature first.");
+    return;
+  }
+  const id = `${Date.now()}-${Math.floor(Math.random() * 9999)}`;
+  const item = { id, title: title || "Untitled", dataUrl };
+  const next = [item, ...savedList];
+  persist(next);
+  setPreview(dataUrl);
+  setIsModalOpen(false);
+  setTitle("");
+}
+
+
+
+function removeSaved(id) {
+const next = savedList.filter((s) => s.id !== id);
+persist(next);
+}
+return (
+    <>
+    {loading && <LoadingScreen duration={2000} onFinish={() => setLoading(false)} />}
+
+{!loading && (  <div className="min-h-screen flex flex-col items-center justify-start p-6 bg-gradient-to-br from-black via-gray-900 to-white text-white">
+<motion.div className="w-full max-w-4xl" layout>
+<header className="flex items-center justify-between py-6">
+<h1 className="text-3xl font-bold">Signature Maker</h1>
+<nav className="flex gap-3">
+<a href="/saved-signs" className="text-sm px-3 py-1 bg-white/10 rounded">Saved Signs</a>
+</nav>
+</header>
+<main className="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div>
+<div className="bg-black/70 rounded-2xl p-6">
+<div className="flex items-center justify-between mb-4">
+<div>
+<div className="text-sm opacity-80">Create signature</div>
+<div className="text-xs opacity-60">Hold + draw — save with a title</div>
+</div>
+
+
+<div className="flex items-center gap-3">
+<HoldButton onComplete={onHoldComplete} />
+</div>
+</div>
+
+
+<div className="bg-white rounded-lg p-4 flex items-center justify-center min-h-[160px]">
+{preview ? (
+<img src={preview} className="max-h-40 object-contain" alt="preview" />
+) : (
+<div className="text-gray-400">No preview yet — create a signature</div>
+)}
+</div>
+<div className="flex gap-3 justify-end mt-4">
+<button
+onClick={() => {
+if (savedList.length === 0) return;
+const raw = savedList[0];
+const a = document.createElement('a');
+a.href = raw.dataUrl;
+a.download = `${raw.title || 'signature'}.png`;
+a.click();
+}}
+className={`px-4 py-2 rounded-md ${savedList.length ? 'bg-white text-black' : 'opacity-40 cursor-not-allowed border'} `}
+>
+Download Latest
+</button>
+</div>
+</div>
+</div>
+
+
+<div>
+<div className="bg-white/5 rounded-2xl p-6">
+<div className="mb-3">
+<div className="text-sm opacity-80">Recent saves</div>
+</div>
+
+
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+{savedList.length === 0 ? (
+<div className="text-gray-400">No saved signatures yet.</div>
+) : (
+savedList.slice(0,4).map((item) => (
+<div key={item.id} className="bg-white rounded p-3 text-black flex flex-col gap-2">
+<div className="font-medium truncate">{item.title}</div>
+<img src={item.dataUrl} className="max-h-24 object-contain" alt={item.title} />
+</div>
+))
+)}
+</div>
+
+
+<div className="mt-4">
+<a href="/saved-signs" className="text-sm px-3 py-2 bg-white/10 rounded">View all</a>
+</div>
+</div>
+</div>
+</main>
+{/* Modal for signing */}
+<AnimatePresence>
+{isModalOpen && (
+<motion.div className="fixed inset-0 z-50 flex items-center justify-center p-6" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}>
+<div className="absolute inset-0 bg-black/60" onClick={() => setIsModalOpen(false)} />
+<motion.div className="relative bg-white text-black rounded-xl p-6 w-full max-w-2xl" initial={{scale:0.95, y:10}} animate={{scale:1, y:0}} exit={{scale:0.95, y:10}}>
+<div className="flex items-center justify-between mb-4">
+<h3 className="text-lg font-medium">Draw your signature</h3>
+<div className="flex gap-2">
+<button onClick={() => canvasApiRef.current?.clear?.()} className="px-3 py-1 border rounded cursor-pointer">Clear</button>
+<button onClick={() => setIsModalOpen(false)} className="px-3 py-1 border rounded cursor-pointer">Close</button>
+</div>
+</div>
+
+
+<div>
+<SignatureCanvas onSave={canvasApiRef} />
+</div>
+
+
+<div className="mt-3">
+    <form onSubmit={(e) => { e.preventDefault(); saveWithTitle(); }} className="flex gap-2">
+<input required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title (e.g. Bank form)" className="flex-1 rounded-md px-3 py-2 border" />
+<button type="submit" className="px-4 py-2 bg-black text-white rounded">Save</button>
+</form>
+</div>
+</motion.div>
+</motion.div>
+)}
+</AnimatePresence>
+</motion.div>
+<Footer/>
+</div> )}
+</>
+);
 }
