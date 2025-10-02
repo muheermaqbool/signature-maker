@@ -2,7 +2,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import HoldButton from "../components/HoldButton";
-import SignatureCanvas from "../components/SignatureCanvas";
+import SignatureCanvas from "../components/SignatureCanvas/SignatureCanvas";
 import Footer from "@/components/Footer";
 import LoadingScreen from "@/components/LoadingScreen";
 
