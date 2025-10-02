@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import PenControls from "./PenControls";
 import BackgroundControls from "./BackgroundControls";
 import UndoRedoControls from "./UndoRedoControls";
@@ -125,20 +125,25 @@ export default function SignatureCanvas({ onSave }) {
     redraw(newStrokes);
   }
   // Save (PNG, with optional transparency)
-  function save() {
+  const save = useCallback(() => {
     const canvas = canvasRef.current;
+    if (!canvas) return null;
     return canvas.toDataURL("image/png");
-  }
-
+  }, []);
+const clear = useCallback(() => {
+    // clear strokes and redraw empty canvas
+    setStrokes([]);
+    setRedoStack([]);
+    setCurrentStroke(null);
+    redraw([]);
+  }, []);
   useEffect(() => {
-    if (onSave) {
-      onSave.current = {
-        save,
-        
-      };
+    if (onSave && typeof onSave === "object") {
+      onSave.current = { save, clear };
     }
-  });
+  }, [onSave, save, clear]);
 
+  
   return (
     <div className="flex flex-col gap-3 w-full">
       <div className="flex flex-wrap items-center gap-3 mb-2">
