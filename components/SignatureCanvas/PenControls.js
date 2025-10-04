@@ -9,7 +9,7 @@ export default function PenControls({ penColor, setPenColor, penWidth, setPenWid
         <button
           key={c}
           onClick={() => setPenColor(c)}
-          className={`w-6 h-6 rounded-full border-2 ${penColor === c ? "border-white" : "border-gray-300"}`}
+          className={`w-6 h-6 rounded-full border-2 cursor-pointer ${penColor === c ? "border-gray-900" : "border-gray-300"}`}
           style={{ backgroundColor: c }}
         />
       ))}

@@ -79,7 +79,7 @@ export default function SignatureCanvas({ onSave }) {
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
-    [...customStrokes].forEach(stroke => {
+    [...customStrokes].forEach((stroke) => {
       ctx.beginPath();
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
@@ -130,7 +130,11 @@ export default function SignatureCanvas({ onSave }) {
     if (!canvas) return null;
     return canvas.toDataURL("image/png");
   }, []);
-const clear = useCallback(() => {
+  const isEmpty = useCallback(() => {
+    return strokes.length === 0;
+  }, [strokes]);
+
+  const clear = useCallback(() => {
     // clear strokes and redraw empty canvas
     setStrokes([]);
     setRedoStack([]);
@@ -139,11 +143,10 @@ const clear = useCallback(() => {
   }, []);
   useEffect(() => {
     if (onSave && typeof onSave === "object") {
-      onSave.current = { save, clear };
+      onSave.current = { save, clear, isEmpty };
     }
-  }, [onSave, save, clear]);
+  }, [onSave, save, clear, isEmpty]);
 
-  
   return (
     <div className="flex flex-col gap-3 w-full">
       <div className="flex flex-wrap items-center gap-3 mb-2">
@@ -159,7 +162,7 @@ const clear = useCallback(() => {
           transparentBg={transparentBg}
           setTransparentBg={setTransparentBg}
         />
-        <UndoRedoControls undo={undo} redo={redo}  />
+        <UndoRedoControls undo={undo} redo={redo} />
       </div>
 
       <div className="w-full h-56 sm:h-64 md:h-72 bg-white rounded-md border overflow-hidden">
